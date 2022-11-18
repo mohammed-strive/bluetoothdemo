@@ -8,12 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var isCentralClicked = false
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            Button("Central") {
+                isCentralClicked.toggle()
+            }
+            .buttonStyle(.borderedProminent)
+            .sheet(isPresented: $isCentralClicked) {
+                CentralView()
+            }
+            
+            Spacer()
+            
+            Button("Peripheral") {
+                print("This is the Peripheral")
+            }
+            .buttonStyle(.borderedProminent)
+            
         }
         .padding()
     }
