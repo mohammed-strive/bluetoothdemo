@@ -17,6 +17,7 @@ class PeripheralController: NSObject, ObservableObject {
     var dataToSend = Data()
     
     override init() {
+        super.init()
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil, options:[CBPeripheralManagerOptionShowPowerAlertKey: true])
     }
     

@@ -9,8 +9,7 @@ import SwiftUI
 import CoreBluetooth
 
 struct CentralView: View {
-    @State var peripherals: [CBPeripheral] = []
-    let centralController = CentralController()
+    @ObservedObject var centralController = CentralController()
     
     var body: some View {
             VStack {
@@ -25,7 +24,7 @@ struct CentralView: View {
                 
                 Spacer()
                 
-                List(peripherals, id: \.identifier) {
+                List(centralController.peripherals, id: \.identifier) {
                     Text($0.name ?? "Bluetooth Device")
                 }
                 .listStyle(.automatic)

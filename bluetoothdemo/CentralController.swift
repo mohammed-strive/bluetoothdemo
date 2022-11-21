@@ -12,7 +12,7 @@ import os
 class CentralController: NSObject, ObservableObject {
     private var centralManager: CBCentralManager!
     @Published var connectedPeripheral: CBPeripheral?
-    @Published var peripherals: [CBPeripheral]?
+    @Published var peripherals: [CBPeripheral] = []
     @Published var transferCharacteristic: CBCharacteristic?
     @Published var connectedToPeripheral = false
     @Published var connectToPeripheralError: Error?
@@ -78,6 +78,7 @@ extension CentralController: CBCentralManagerDelegate {
         switch central.state {
         case .poweredOn:
             print("Central Manager state is powered ON")
+            scanForPeripherals()
         default:
             print("Central Manager is in \(central.state.rawValue)")
         }
@@ -89,7 +90,7 @@ extension CentralController: CBCentralManagerDelegate {
             print("Peripheral RSSI Value is \(RSSI.intValue) --> Not Connecting")
             return
         }
-        peripherals?.append(peripheral)
+        peripherals.append(peripheral)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
