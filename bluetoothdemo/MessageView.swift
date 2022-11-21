@@ -7,15 +7,26 @@
 
 import SwiftUI
 
-struct MessageView: View {
+struct MessageView : View {
+    var currentMessage: Message
     var body: some View {
-        Text("Hello, World")
+        HStack(alignment: .bottom, spacing: 15) {
+            if !currentMessage.user.isCurrentUser {
+                Image(systemName: "globe")
+                .resizable()
+                .frame(width: 40, height: 40, alignment: .center)
+                .cornerRadius(20)
+            } else {
+                Spacer()
+            }
+            ChatMessageView(message: currentMessage.content,
+                               isCurrentUser: currentMessage.user.isCurrentUser)
+        }.padding()
     }
-        
 }
 
 struct MessageView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageView()
+        MessageView(currentMessage: Message(content: "This is a chat message", user: User(name: "jaffer", isCurrentUser: true)))
     }
 }

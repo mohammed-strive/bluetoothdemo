@@ -24,12 +24,20 @@ struct CentralView: View {
                 
                 Spacer()
                 
-                List(centralController.peripherals, id: \.identifier) {
-                    Text($0.name ?? "Bluetooth Device")
+                NavigationView {
+                    List {
+                        ForEach(centralController.peripherals, id: \.identifier) {
+                            peripheral in
+                            let user = User(name: peripheral
+                                .name ?? "BLE Device")
+                            NavigationLink(destination: ChatView(messages: $centralController.publishedMessages, user: user)) {
+                                Text(peripheral.name ?? "Bluetooth Device")
+                            }
+                        }
+                    }
+                    .listStyle(.automatic)
+                    .cornerRadius(10.0)
                 }
-                .listStyle(.automatic)
-                .cornerRadius(10.0)
-                
             }
             .edgesIgnoringSafeArea([.top])
             .padding()

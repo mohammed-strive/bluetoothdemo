@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0A06DC332927619D00B77DD5 /* PeripheralController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A06DC322927619D00B77DD5 /* PeripheralController.swift */; };
+		0A412DEA292B22E400D486A5 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A412DE9292B22E400D486A5 /* Message.swift */; };
+		0A412DEC292B230500D486A5 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A412DEB292B230500D486A5 /* User.swift */; };
 		0AAB33C12922086A00FBC211 /* bluetoothdemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAB33C02922086A00FBC211 /* bluetoothdemoApp.swift */; };
 		0AAB33C32922086A00FBC211 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAB33C22922086A00FBC211 /* ContentView.swift */; };
 		0AAB33C52922086D00FBC211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0AAB33C42922086D00FBC211 /* Assets.xcassets */; };
@@ -43,6 +45,8 @@
 
 /* Begin PBXFileReference section */
 		0A06DC322927619D00B77DD5 /* PeripheralController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralController.swift; sourceTree = "<group>"; };
+		0A412DE9292B22E400D486A5 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		0A412DEB292B230500D486A5 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		0AAB33BD2922086900FBC211 /* bluetoothdemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bluetoothdemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0AAB33C02922086A00FBC211 /* bluetoothdemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = bluetoothdemoApp.swift; sourceTree = "<group>"; };
 		0AAB33C22922086A00FBC211 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -117,6 +121,8 @@
 				0AAB33C22922086A00FBC211 /* ContentView.swift */,
 				0AFA63FA29249E5200BCA6D4 /* CentralView.swift */,
 				0ABAFBD6292731E500D9AB40 /* ChatMessageView.swift */,
+				0A412DE9292B22E400D486A5 /* Message.swift */,
+				0A412DEB292B230500D486A5 /* User.swift */,
 				0ABAFBD82927346E00D9AB40 /* ChatView.swift */,
 				0ABAFBDC2927357A00D9AB40 /* ChatController.swift */,
 				0ABAFBDA292734BE00D9AB40 /* MessageView.swift */,
@@ -296,7 +302,9 @@
 				0A06DC332927619D00B77DD5 /* PeripheralController.swift in Sources */,
 				0ABAFB882924ADB300D9AB40 /* TransferServiceController.swift in Sources */,
 				0ABAFBDB292734BE00D9AB40 /* MessageView.swift in Sources */,
+				0A412DEA292B22E400D486A5 /* Message.swift in Sources */,
 				0ABAFBD92927346E00D9AB40 /* ChatView.swift in Sources */,
+				0A412DEC292B230500D486A5 /* User.swift in Sources */,
 				0AAB33C12922086A00FBC211 /* bluetoothdemoApp.swift in Sources */,
 				0ABAFB862924A5DC00D9AB40 /* CentralController.swift in Sources */,
 				0ABAFBDD2927357A00D9AB40 /* ChatController.swift in Sources */,

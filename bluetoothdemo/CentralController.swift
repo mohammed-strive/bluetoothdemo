@@ -16,7 +16,7 @@ class CentralController: NSObject, ObservableObject {
     @Published var transferCharacteristic: CBCharacteristic?
     @Published var connectedToPeripheral = false
     @Published var connectToPeripheralError: Error?
-    @Published var publishedMessages: [String] = []
+    @Published var publishedMessages: [Message] = []
     
     var data = Data()
     
