@@ -30,7 +30,7 @@ struct CentralView: View {
                             peripheral in
                             let user = User(name: peripheral
                                 .name ?? "BLE Device")
-                            NavigationLink(destination: ChatView(messages: $centralController.publishedMessages, user: user)) {
+                            NavigationLink(destination: CentralChatView(controller: centralController, peripheral: peripheral, user: user)) {
                                 Text(peripheral.name ?? "Bluetooth Device")
                             }
                         }

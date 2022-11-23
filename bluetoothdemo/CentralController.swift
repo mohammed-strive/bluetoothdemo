@@ -17,6 +17,7 @@ class CentralController: NSObject, ObservableObject {
     @Published var connectedToPeripheral = false
     @Published var connectToPeripheralError: Error?
     @Published var publishedMessages: [Message] = []
+    @Published var centralUser: User?
     
     var data = Data()
     
@@ -33,7 +34,7 @@ class CentralController: NSObject, ObservableObject {
         centralManager.connect(peripheral)
     }
     
-    func writeData() {
+    func writeData(message: String) {
         guard let connectedPeripheral = connectedPeripheral,
               let transferCharacteristic = transferCharacteristic
         else { return }
@@ -42,19 +43,17 @@ class CentralController: NSObject, ObservableObject {
             let mtu = connectedPeripheral.maximumWriteValueLength(for: .withoutResponse)
             var rawPacket = [UInt8]()
             
-            let bytesToCopy: size_t = min(mtu, data.count)
+            let bytesToCopy: size_t = min(mtu, message.count)
             data.copyBytes(to: &rawPacket, count: bytesToCopy)
             
             let packetData = Data(bytes: &rawPacket, count: bytesToCopy)
             let stringFromData = String(data: packetData, encoding: .utf8)
+            let messageData = Data(bytes: Array(message.utf8), count: mtu)
             
             os_log("Writing %d bytes: %s", bytesToCopy, String(describing: stringFromData))
-            
-            connectedPeripheral.writeValue(packetData, for: transferCharacteristic, type: .withoutResponse)
+            connectedPeripheral.writeValue(messageData, for: transferCharacteristic, type: .withoutResponse)
         }
     }
-    
-    
     
     func cleanup() {
         
@@ -86,19 +85,24 @@ extension CentralController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         print("Trying to connect to the periperhal: \(String(describing: peripheral.name))")
-        guard RSSI.intValue >= -100 else {
-            print("Peripheral RSSI Value is \(RSSI.intValue) --> Not Connecting")
-            return
-        }
         peripherals.append(peripheral)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         connectedToPeripheral = true
+        self.connectedPeripheral = peripheral
+        centralUser = User(name: peripheral.name ?? "Central User", isCurrentUser: true)
+        central.stopScan()
         peripheral.discoverServices([TransferService.serviceUUID])
     }
     
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        os_log("Peripheral disconnected")
+        connectedPeripheral = nil
+    }
+    
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        os_log("Failed to connect to peripheral: \(String(describing: error.debugDescription))")
         connectToPeripheralError = error
         connectedToPeripheral = false
     }
@@ -112,6 +116,8 @@ extension CentralController: CBPeripheralDelegate {
             cleanup()
             return
         }
+        
+        os_log("Discovering services for \(String(describing: peripheral.name))")
         
         guard let peripheralServices = peripheral.services else { return }
         for service in peripheralServices {
@@ -142,5 +148,6 @@ extension CentralController: CBPeripheralDelegate {
         guard let characteristicData = characteristic.value,
               let stringFromData = String(data: characteristicData, encoding: .utf8) else { return }
         os_log("Received %d bytes: %s", characteristicData.count, stringFromData)
+        publishedMessages.append(Message(content: stringFromData, user: User(name: "peripheral", isCurrentUser: false)))
     }
 }

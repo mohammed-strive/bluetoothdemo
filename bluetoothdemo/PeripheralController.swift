@@ -15,6 +15,10 @@ class PeripheralController: NSObject, ObservableObject {
     var transferCharacteristic: CBMutableCharacteristic?
     var connectedCentral: CBCentral?
     var dataToSend = Data()
+    var peripheralUser: User?
+    
+    @Published var centralConnected: Bool = false
+    @Published var publishedMessages: [Message] = []
     
     override init() {
         super.init()
@@ -30,14 +34,16 @@ class PeripheralController: NSObject, ObservableObject {
         
         peripheralManager.add(transferService)
         self.transferCharacteristic = transferCharacteristic
+        
+        peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [transferService]])
     }
     
-    func sendData() {
+    func sendData(message: String) {
         guard let transferCharacteristic = transferCharacteristic else {
             return
         }
         
-        let didSend = peripheralManager.updateValue(dataToSend, for: transferCharacteristic, onSubscribedCentrals: nil)
+        let didSend = peripheralManager.updateValue(Data(bytes: Array(message.utf8), count: message.count), for: transferCharacteristic, onSubscribedCentrals: nil)
         
         if !didSend {
             return
@@ -46,7 +52,7 @@ class PeripheralController: NSObject, ObservableObject {
 }
 
 extension PeripheralController: CBPeripheralManagerDelegate {
-    func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+    internal func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         switch peripheral.state {
         case .poweredOn:
             os_log("CBPeripheral is powered ON")
@@ -58,14 +64,16 @@ extension PeripheralController: CBPeripheralManagerDelegate {
     
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
         os_log("Central subscribed to characteristic")
-        
+        peripheralUser = User(name: "Peripheral", isCurrentUser: true)
         connectedCentral = central
-        sendData()
+        centralConnected = true
+        peripheral.stopAdvertising()
     }
     
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
         os_log("Central unsubscribed from characteristic")
         connectedCentral = nil
+        centralConnected = false
     }
     
     func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
@@ -78,6 +86,7 @@ extension PeripheralController: CBPeripheralManagerDelegate {
                   let stringFromData = String(data: requestValue, encoding: .utf8) else {
                 continue
             }
+            self.publishedMessages.append(Message(content: stringFromData, user: User(name: "Central", isCurrentUser: false)))
         }
     }
 }

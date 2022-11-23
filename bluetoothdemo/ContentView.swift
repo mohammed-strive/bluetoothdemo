@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var isCentralClicked = false
+    @State var isPeripheralClicked = false
     var body: some View {
         VStack {
             Button("Central") {
@@ -22,9 +23,12 @@ struct ContentView: View {
             Spacer()
             
             Button("Peripheral") {
-                print("This is the Peripheral")
+                isPeripheralClicked.toggle()
             }
             .buttonStyle(.borderedProminent)
+            .sheet(isPresented: $isPeripheralClicked) {
+                PeripheralView()
+            }
             
         }
         .padding()
