@@ -33,6 +33,8 @@ struct PeripheralChatView: View {
     }
     
     func sendMessage() {
+        controller.publishedMessages.append(Message(content: typingMessage, user: User(name: "peripheral", isCurrentUser: true)))
+        controller.sendData(message: typingMessage)
     }
 }
 
