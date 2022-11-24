@@ -27,7 +27,7 @@ class PeripheralController: NSObject, ObservableObject {
     
     private func setupPeripheral() {
         
-        let transferCharacteristic = CBMutableCharacteristic(type: TransferService.characteristicUUID, properties: [.notify, .writeWithoutResponse], value: nil, permissions: [.readable, .writeable])
+        let transferCharacteristic = CBMutableCharacteristic(type: TransferService.characteristicUUID, properties: [.notify, .writeWithoutResponse, .write], value: nil, permissions: [.readable, .writeable])
         
         let transferService = CBMutableService(type: TransferService.serviceUUID, primary: true)
         transferService.characteristics = [transferCharacteristic]
@@ -77,12 +77,21 @@ extension PeripheralController: CBPeripheralManagerDelegate {
     }
     
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
-        for aRequest in requests {
-            guard let requestValue = aRequest.value,
-                  let stringFromData = String(data: requestValue, encoding: .utf8) else {
-                continue
+        os_log("Received write request for characteristic")
+        print(requests.count)
+        
+        for request in requests {
+            if let value = request.value {
+                print(String(decoding: value, as: UTF8.self))
             }
-            self.publishedMessages.append(Message(content: stringFromData, user: User(name: "Central", isCurrentUser: false)))
+        }
+        for aRequest in requests {
+            if let requestValue = aRequest.value,
+               let stringFromData = String(data: requestValue, encoding: .utf8) {
+               self.publishedMessages.append(Message(content: stringFromData, user: User(name: "Central", isCurrentUser: false)))
+            }else {
+                os_log("Found not data")
+            }
         }
     }
 }

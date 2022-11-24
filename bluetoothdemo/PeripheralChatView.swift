@@ -9,7 +9,7 @@ import SwiftUI
 
 struct PeripheralChatView: View {
     @State var typingMessage: String = ""
-    var controller: PeripheralController
+    @ObservedObject var controller: PeripheralController
     let user: User?
     
     var body: some View {

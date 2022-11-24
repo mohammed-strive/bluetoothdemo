@@ -31,6 +31,7 @@ class CentralController: NSObject, ObservableObject {
     }
     
     func connectToPeripheral(peripheral: CBPeripheral) {
+        os_log("Coonecting to peripheral")
         centralManager.connect(peripheral)
     }
     
@@ -47,10 +48,10 @@ class CentralController: NSObject, ObservableObject {
             
             let bytesToCopy: size_t = min(mtu, message.count)
             
-            let messageData = Data(bytes: Array(message.utf8), count: mtu)
+            let messageData = Data(bytes: Array(message.utf8), count: message.count)
             
             os_log("Writing %d bytes: %s", bytesToCopy, String(describing: message))
-            connectedPeripheral.writeValue(messageData, for: transferCharacteristic, type: .withResponse)
+            connectedPeripheral.writeValue(messageData, for: transferCharacteristic, type: .withoutResponse)
         }
         
         os_log("Unable to write message to peripheral")
@@ -85,11 +86,12 @@ extension CentralController: CBCentralManagerDelegate {
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        print("Trying to connect to the periperhal: \(String(describing: peripheral.name))")
+        os_log("Appending peripheral - %@ to list", String(describing: peripheral.name))
         peripherals.append(peripheral)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        os_log("Connected to peripheral: %@", String(describing: peripheral.name))
         connectedToPeripheral = true
         self.connectedPeripheral = peripheral
         peripheral.delegate = self
@@ -158,6 +160,13 @@ extension CentralController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             os_log("Unable to write to characteristic: %@", error.localizedDescription)
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
+        for service in invalidatedServices where service.uuid == TransferService.serviceUUID {
+            os_log("Transfer service is invalidated - rediscover services")
+            peripheral.discoverServices([TransferService.serviceUUID])
         }
     }
 }

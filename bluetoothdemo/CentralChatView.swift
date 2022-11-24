@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreBluetooth
+import os
 
 struct CentralChatView: View {
     @State var typingMessage: String = ""
@@ -15,12 +16,12 @@ struct CentralChatView: View {
     let user: User
     
     init(controller: CentralController, peripheral: CBPeripheral? = nil, user: User) {
+        os_log("running init")
         self.controller = controller
         self.peripheral = peripheral
         self.user = user
-        self.controller.connectToPeripheral(peripheral: peripheral!)
     }
-    
+        
     var body: some View {
         NavigationView {
             VStack {
@@ -38,6 +39,9 @@ struct CentralChatView: View {
                     }
                 }.frame(minHeight: CGFloat(50)).padding()
             }.navigationBarTitle(("User 1"), displayMode: .inline)
+        }
+        .onAppear {
+            controller.connectToPeripheral(peripheral: peripheral!)
         }
     }
     
