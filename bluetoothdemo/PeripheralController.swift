@@ -35,7 +35,7 @@ class PeripheralController: NSObject, ObservableObject {
         peripheralManager.add(transferService)
         self.transferCharacteristic = transferCharacteristic
         
-        peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [transferService]])
+        peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [TransferService.serviceUUID]])
     }
     
     func sendData(message: String) {
@@ -74,10 +74,6 @@ extension PeripheralController: CBPeripheralManagerDelegate {
         os_log("Central unsubscribed from characteristic")
         connectedCentral = nil
         centralConnected = false
-    }
-    
-    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
-        sendData()
     }
     
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {

@@ -11,16 +11,22 @@ struct PeripheralView: View {
     @ObservedObject var peripheralController = PeripheralController()
     var body: some View {
         VStack {
-            Text("Waiting for a Central to Connect")
-                .font(.title)
+            Text("Peripheral Screen")
+                .font(.largeTitle)
                 .fontWeight(.bold)
-                .multilineTextAlignment(.center)
+                .overlay(RoundedRectangle(cornerRadius: 10)
+                    .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height / 8)
+                    .foregroundColor(.blue)
+                    .opacity(0.4)
+                )
             
-            ProgressView()
+            if !peripheralController.centralConnected {
+                ProgressView()
+            }
             
             NavigationView {
                 NavigationLink(destination: PeripheralChatView(controller: peripheralController, user: peripheralController.peripheralUser ?? nil)) {
-                    Text(peripheralController.centralConnected ? "Central": "Not connected yet")
+                    Text(peripheralController.centralConnected ? "Central is connected": "Not connected yet")
                 }
             }
         }

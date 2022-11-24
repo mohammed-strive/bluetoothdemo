@@ -37,22 +37,23 @@ class CentralController: NSObject, ObservableObject {
     func writeData(message: String) {
         guard let connectedPeripheral = connectedPeripheral,
               let transferCharacteristic = transferCharacteristic
-        else { return }
+        else {
+            os_log("Unable to write to periperhal")
+            return
+        }
         
-        while connectedPeripheral.canSendWriteWithoutResponse {
+        if connectedPeripheral.canSendWriteWithoutResponse {
             let mtu = connectedPeripheral.maximumWriteValueLength(for: .withoutResponse)
-            var rawPacket = [UInt8]()
             
             let bytesToCopy: size_t = min(mtu, message.count)
-            data.copyBytes(to: &rawPacket, count: bytesToCopy)
             
-            let packetData = Data(bytes: &rawPacket, count: bytesToCopy)
-            let stringFromData = String(data: packetData, encoding: .utf8)
             let messageData = Data(bytes: Array(message.utf8), count: mtu)
             
-            os_log("Writing %d bytes: %s", bytesToCopy, String(describing: stringFromData))
-            connectedPeripheral.writeValue(messageData, for: transferCharacteristic, type: .withoutResponse)
+            os_log("Writing %d bytes: %s", bytesToCopy, String(describing: message))
+            connectedPeripheral.writeValue(messageData, for: transferCharacteristic, type: .withResponse)
         }
+        
+        os_log("Unable to write message to peripheral")
     }
     
     func cleanup() {
@@ -91,6 +92,7 @@ extension CentralController: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         connectedToPeripheral = true
         self.connectedPeripheral = peripheral
+        peripheral.delegate = self
         centralUser = User(name: peripheral.name ?? "Central User", isCurrentUser: true)
         central.stopScan()
         peripheral.discoverServices([TransferService.serviceUUID])
@@ -131,6 +133,8 @@ extension CentralController: CBPeripheralDelegate {
             return
         }
         
+        os_log("Discovering characteristics for \(String(describing: peripheral.name))")
+
         guard let serviceCharacteristics = service.characteristics else { return }
         for characteristic in serviceCharacteristics where characteristic.uuid == TransferService.characteristicUUID {
             self.transferCharacteristic = characteristic
@@ -149,5 +153,11 @@ extension CentralController: CBPeripheralDelegate {
               let stringFromData = String(data: characteristicData, encoding: .utf8) else { return }
         os_log("Received %d bytes: %s", characteristicData.count, stringFromData)
         publishedMessages.append(Message(content: stringFromData, user: User(name: "peripheral", isCurrentUser: false)))
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            os_log("Unable to write to characteristic: %@", error.localizedDescription)
+        }
     }
 }

@@ -44,6 +44,7 @@ struct CentralChatView: View {
     func sendMessage() {
         controller.publishedMessages.append(Message(content: typingMessage, user: controller.centralUser!))
         controller.writeData(message: typingMessage)
+        typingMessage = ""
     }
 }
 
