@@ -14,6 +14,7 @@ class CentralController: NSObject, ObservableObject {
     @Published var connectedPeripheral: CBPeripheral?
     @Published var peripherals: [CBPeripheral] = []
     @Published var transferCharacteristic: CBCharacteristic?
+    @Published var writeCharacteristic: CBCharacteristic?
     @Published var connectedToPeripheral = false
     @Published var connectToPeripheralError: Error?
     @Published var publishedMessages: [Message] = []
@@ -37,7 +38,7 @@ class CentralController: NSObject, ObservableObject {
     
     func writeData(message: String) {
         guard let connectedPeripheral = connectedPeripheral,
-              let transferCharacteristic = transferCharacteristic
+              let transferCharacteristic = writeCharacteristic
         else {
             os_log("Unable to write to periperhal")
             return
@@ -125,7 +126,8 @@ extension CentralController: CBPeripheralDelegate {
         
         guard let peripheralServices = peripheral.services else { return }
         for service in peripheralServices {
-            peripheral.discoverCharacteristics([TransferService.characteristicUUID], for: service)
+            // decide which characteristics you want to discover to be available for consumption
+            peripheral.discoverCharacteristics([TransferService.characteristicUUID, TransferService.writeCharacteristic], for: service)
         }
     }
     
@@ -138,9 +140,15 @@ extension CentralController: CBPeripheralDelegate {
         os_log("Discovering characteristics for \(String(describing: peripheral.name))")
 
         guard let serviceCharacteristics = service.characteristics else { return }
-        for characteristic in serviceCharacteristics where characteristic.uuid == TransferService.characteristicUUID {
-            self.transferCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
+        for characteristic in serviceCharacteristics {
+            if characteristic.uuid == TransferService.characteristicUUID {
+                self.transferCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+            }
+            if characteristic.uuid == TransferService.writeCharacteristic {
+                self.writeCharacteristic = characteristic
+                // No notify required, right?
+            }
         }
     }
     

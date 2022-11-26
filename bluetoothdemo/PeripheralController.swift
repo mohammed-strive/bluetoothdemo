@@ -12,7 +12,8 @@ import os
 class PeripheralController: NSObject, ObservableObject {
     
     var peripheralManager: CBPeripheralManager!
-    var transferCharacteristic: CBMutableCharacteristic?
+    var readCharacteristic: CBMutableCharacteristic?
+    var writeCharacteristic: CBMutableCharacteristic?
     var connectedCentral: CBCentral?
     var dataToSend = Data()
     var peripheralUser: User?
@@ -27,24 +28,24 @@ class PeripheralController: NSObject, ObservableObject {
     
     private func setupPeripheral() {
         
-        let transferCharacteristic = CBMutableCharacteristic(type: TransferService.characteristicUUID, properties: [.notify, .writeWithoutResponse, .write], value: nil, permissions: [.readable, .writeable])
-        
+        let readCharacteristic = CBMutableCharacteristic(type: TransferService.characteristicUUID, properties: [.notify, .indicate], value: nil, permissions: [.readable])
+        let writeCharacteristic = CBMutableCharacteristic(type: TransferService.writeCharacteristic, properties: [.writeWithoutResponse, .write], value: nil, permissions: [.writeable])
+
         let transferService = CBMutableService(type: TransferService.serviceUUID, primary: true)
-        transferService.characteristics = [transferCharacteristic]
-        
+        transferService.characteristics = [writeCharacteristic, readCharacteristic]
+
         peripheralManager.add(transferService)
-        self.transferCharacteristic = transferCharacteristic
-        
+        self.readCharacteristic = readCharacteristic
+        self.writeCharacteristic = writeCharacteristic
         peripheralManager.startAdvertising([CBAdvertisementDataServiceUUIDsKey: [TransferService.serviceUUID]])
     }
     
     func sendData(message: String) {
-        guard let transferCharacteristic = transferCharacteristic else {
+        guard let writeCharacteristic = readCharacteristic else {
             return
         }
-        
-        let didSend = peripheralManager.updateValue(Data(bytes: Array(message.utf8), count: message.count), for: transferCharacteristic, onSubscribedCentrals: nil)
-        
+        // peripheral writing data for central?
+        let didSend = peripheralManager.updateValue(Data(bytes: Array(message.utf8), count: message.count), for: writeCharacteristic, onSubscribedCentrals: nil)
         if !didSend {
             return
         }
@@ -61,7 +62,7 @@ extension PeripheralController: CBPeripheralManagerDelegate {
             os_log("CBPeripheral is state \(peripheral.state.rawValue)")
         }
     }
-    
+
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
         os_log("Central subscribed to characteristic")
         peripheralUser = User(name: "Peripheral", isCurrentUser: true)
@@ -69,17 +70,17 @@ extension PeripheralController: CBPeripheralManagerDelegate {
         centralConnected = true
         peripheral.stopAdvertising()
     }
-    
+
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
         os_log("Central unsubscribed from characteristic")
         connectedCentral = nil
         centralConnected = false
     }
-    
+
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
         os_log("Received write request for characteristic")
         print(requests.count)
-        
+
         for request in requests {
             if let value = request.value {
                 print(String(decoding: value, as: UTF8.self))
